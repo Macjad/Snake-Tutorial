@@ -3,6 +3,8 @@ import random
 
 green = (0, 255, 0)
 red = (255, 0, 0)
+white = (255, 255, 255)
+black = (0, 0, 0)
 
 #The Snake class is our class to represent everything about the snake
 class Snake:
@@ -15,6 +17,7 @@ class Snake:
         self.x = random.randint(2,17)
         self.y = random.randint(2,17)
         self.direction = random.choice(["left", "right", "up", "down"])
+        self.body = LinkedBody()
 
     def location(self):
         return (self.x, self.y)
@@ -31,21 +34,45 @@ class Snake:
             dy = 1
 
         if 0 <= self.x + dx <= 19 and 0 <= self.y + dy <= 19:
+            self.body.move(self.x, self.y)
             self.x += dx
             self.y += dy
-            return False
-        return True
+            return True
+        return False
+
+    def collision(self):
+        return len(self.occupation()) == len(set(self.occupation()))
 
     def occupation(self):
-        return [(self.x, self.y)]
+        return [(self.x, self.y)] + self.body.occupation()
 
     def draw(self, screen):
-        pygame.draw.ellipse(screen, green, [self.x*30+10, self.y*30+10, 30, 30])
         self.body.draw(screen)
+        pygame.draw.rect(screen, green, [self.x*30+10, self.y*30+10, 30, 30])
+        if self.direction == "left":
+            pygame.draw.ellipse(screen, white, [self.x*30+12, self.y*30+14, 10, 10])
+            pygame.draw.ellipse(screen, white, [self.x*30+12, self.y*30+26, 10, 10])
+            pygame.draw.ellipse(screen, black, [self.x*30+13, self.y*30+17, 4, 4])
+            pygame.draw.ellipse(screen, black, [self.x*30+13, self.y*30+29, 4, 4])
+        elif self.direction == "right":
+            pygame.draw.ellipse(screen, white, [self.x*30+28, self.y*30+14, 10, 10])
+            pygame.draw.ellipse(screen, white, [self.x*30+28, self.y*30+26, 10, 10])
+            pygame.draw.ellipse(screen, black, [self.x*30+33, self.y*30+17, 4, 4])
+            pygame.draw.ellipse(screen, black, [self.x*30+33, self.y*30+29, 4, 4])
+        elif self.direction == "up":
+            pygame.draw.ellipse(screen, white, [self.x*30+14, self.y*30+12, 10, 10])
+            pygame.draw.ellipse(screen, white, [self.x*30+26, self.y*30+12, 10, 10])
+            pygame.draw.ellipse(screen, black, [self.x*30+17, self.y*30+13, 4, 4])
+            pygame.draw.ellipse(screen, black, [self.x*30+29, self.y*30+13, 4, 4])
+        elif self.direction == "down":
+            pygame.draw.ellipse(screen, white, [self.x*30+14, self.y*30+28, 10, 10])
+            pygame.draw.ellipse(screen, white, [self.x*30+26, self.y*30+28, 10, 10])
+            pygame.draw.ellipse(screen, black, [self.x*30+17, self.y*30+33, 4, 4])
+            pygame.draw.ellipse(screen, black, [self.x*30+29, self.y*30+33, 4, 4])
         
     #If you wish to print out the snake
     def __str__(self):
-        return "<Snake x: {}  y: {} Direction: {}>".format(self.x, self.y, self.direction)
+        return "<Snake location:({},{}) direction: {}>".format(self.x, self.y, self.direction)
 
         
 #Linked_body class is the body of our snake, which will be represented as a linked list
@@ -60,13 +87,19 @@ class LinkedBody():
     def isEmpty(self):
         return self.length == 0
 
-    def addNode(self, x, y):
+    def addNode(self, x, y): #For them to implement
         pass
 
-    def draw(self, screen):
+    def draw(self, screen): #For them to implement
         pass
-        
-        
+
+    def move(self, x, y): #For them to implement
+        pass
+
+    def occupation(self):
+        return []
+
+
 class BodyNode():
     #Initialise a node for the linked list
     def __init__(self, x, y):
@@ -75,8 +108,11 @@ class BodyNode():
         self.next = None
     
     #Draw the node
-    def draw_node(self, screen):
+    def draw(self, screen):
         pygame.draw.rect(screen, green, [self.x*30+10, self.y*30+10, 30, 30])
+
+    def __str__(self):
+        return "<Node location: ({},{})>".format(self.x, self.y)
 
 
 class Apple():
@@ -85,12 +121,10 @@ class Apple():
             self.x = random.randint(0,19)
             self.y = random.randint(0,19)
         else:
-            potentialLocation = (random.randint(0,19), random.randint(0,19))
-            while potentialLocation in snakeLocation:
-                potentialLocation = (random.randint(0,19), random.randint(0,19))
+            location = random.choice(snakeLocation)
 
-            self.x = potentialLocation[0]
-            self.y = potentialLocation[1]
+            self.x = location[0]
+            self.y = location[1]
 
     def location(self):
         return (self.x, self.y)

@@ -1,11 +1,10 @@
-import pygame, random
+import pygame
 import snakeObjects
 
 #Functions
 def draw_background():
     pygame.draw.rect(screen, black, [0, 0, 620, 620])
     pygame.draw.rect(screen, white, [10, 10, 600, 600])
-
 
 # Define some colors
 black = (0, 0, 0)
@@ -22,7 +21,7 @@ pygame.display.set_caption("Snake Game")
 
 # Loop until the user clicks the close button.
 done = False
-dead = True
+alive = False
 frame = 0
 apple = 0
 grid = [[0 for y in range( 20)] for x in range(20)]
@@ -39,19 +38,18 @@ clock=pygame.time.Clock()
 ######################################
 # -------- Main Program Loop -----------
 while not done:
-
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
             done = True # Flag that we are done so we exit this loop
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                dead = not dead
-            if event.key == pygame.K_r and dead:
+                alive = not alive
+            if event.key == pygame.K_r and not alive:
                 snake.randomSpawn()
                 apple = snakeObjects.Apple()
 
-        if event.type == pygame.KEYDOWN and not dead: # If user wants to perform an action
+        if event.type == pygame.KEYDOWN and alive: # If user wants to perform an action
             if event.key == pygame.K_UP and snake.direction != "down":
                 next_direction = "up"
             if event.key == pygame.K_DOWN and snake.direction != "up":
@@ -62,15 +60,21 @@ while not done:
                 next_direction = "right"
 
     #Move our snake if it isn't dead and depending on our frame
-    if frame%10 == 0 and not dead:
+    if frame%10 == 0 and alive:
         if next_direction is not None:
             snake.direction = next_direction
             next_direction = None
-        dead = snake.move()
+        tempAlive = snake.move()
 
         if snake.location() == apple.location():
-            apple = snakeObjects.Apple(snake.occupation())
+            occupiedSpace = snake.occupation()
+            apple = snakeObjects.Apple([(x,y) for x in range(19) for y in range(19) if (x,y) not in occupiedSpace])
+            snake.body.addNode(snake.x, snake.y)
+        else:
+            alive = tempAlive and snake.collision()
 
+
+    #print(alive)
     # Draw all our objects here
     draw_background()
     snake.draw(screen)
