@@ -21,12 +21,12 @@ pygame.display.set_caption("Snake Game")
 
 # Loop until the user clicks the close button.
 done = False
-alive = False
+resetNeeded = False
+alive = True
 frame = 0
 apple = 0
-grid = [[0 for y in range( 20)] for x in range(20)]
 
-#Snake object
+# Snake object
 snake = snakeObjects.Snake()
 apple = snakeObjects.Apple()
 next_direction = None
@@ -59,22 +59,26 @@ while not done:
             if event.key == pygame.K_RIGHT and snake.direction != "left":
                 next_direction = "right"
 
-    #Move our snake if it isn't dead and depending on our frame
+    # Move our snake if it isn't dead and depending on our frame
     if frame%10 == 0 and alive:
         if next_direction is not None:
             snake.direction = next_direction
             next_direction = None
-        tempAlive = snake.move()
+        isSnakeAlive = snake.move()
 
         if snake.location() == apple.location():
             occupiedSpace = snake.occupation()
+            if apple.type == "add":
+                snake.body.addNode(snake.x, snake.y)
+            elif apple.type == "remove":
+                snake.body.removeLast()
+            else:
+                #snake.body.reverse()
+                pass
             apple = snakeObjects.Apple([(x,y) for x in range(19) for y in range(19) if (x,y) not in occupiedSpace])
-            snake.body.addNode(snake.x, snake.y)
         else:
-            alive = tempAlive and snake.collision()
+            alive = isSnakeAlive and snake.collision()
 
-
-    #print(alive)
     # Draw all our objects here
     draw_background()
     snake.draw(screen)
@@ -86,7 +90,7 @@ while not done:
     # Go ahead and update the screen with what we've drawn.
     pygame.display.update()
 
-    #Increment frame
+    # Increment frame
     frame = (frame + 1) % 10
 
 # If you forget this line, the program will 'hang' on exit.
